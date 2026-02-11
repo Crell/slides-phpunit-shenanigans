@@ -62,8 +62,9 @@
       * This talk is not
         * An intro to PHPUnit basics
         * An intro to the value of testing
-        * Focused on PHPUnit 12
+        * Focused on PHPUnit 12/13
       * Topics
+        * Custom cache dir
         * Data providers
           * #[TestWith]
           * provider methods
@@ -76,9 +77,14 @@
           * Package up Before/After pairs
           * Transaction start/rollback trait
           * Ensure schema is up to date trait
+        * TestDox
+          * Use #[Test] attribute, not test prefix.
+          * #[TestDox]
+          * #[TestDoxFormatter]
         * Base abstract test class with impl-specific subclasses. (cf, Serde)
         * Groups
           * Use for excluding tests that require network, but you still want sometimes in dev or CI
+          * Can have many groups, so be liberal with them
         *
         * Mocks
           * Avoid them in favor of anon classes
