@@ -35,6 +35,7 @@
         ]
     },
     "require": {
+        "doctrine/dbal": "^4.4",
         "nyholm/psr7": "^1.8",
         "psr/http-factory": "^1.1",
         "psr/http-message": "^2.0",
