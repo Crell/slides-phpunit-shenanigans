@@ -46,8 +46,8 @@ class RequestHandlerTest extends TestCase
         $request = new ServerRequest($method, $uri, $headers, $body);
 
         $handler = new RequestHandler();
-
         $res = $handler->handle($request);
+
         self::assertSame($expectedCode, $res->getStatusCode());
         if ($expectedBody) {
             self::assertSame($expectedBody, (string) $res->getBody());
@@ -63,7 +63,7 @@ class RequestHandlerTest extends TestCase
     public static function v2Provider(): \Generator
     {
         yield 'just confirm a 200' => [
-            'request' => new ServerRequest('GET', '/beep', [], 'boop'),
+            'request' => new ServerRequest('GET', '/beep'),
         ];
 
         yield 'confirm a not-found URL' => [
@@ -102,7 +102,7 @@ class RequestHandlerTest extends TestCase
     public static function v3Provider(): \Generator
     {
         yield 'just confirm a 200' => [
-            'request' => new ServerRequest('GET', '/beep', [], 'boop'),
+            'request' => new ServerRequest('GET', '/beep', []),
             'checks' => static function(ResponseInterface $response) {
                 self::assertSame(200, $response->getStatusCode());
             },

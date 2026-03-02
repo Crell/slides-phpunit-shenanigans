@@ -23,7 +23,7 @@
 <body class="skin-blue">
 <div class="reveal">
   <footer>
-<!--    <img src="assets/makershub.svg" alt="Makershub.ai" />-->
+<!--    <img src="assets/" alt="" />-->
     <span class="name">@Crell@phpc.social</span>
   </footer>
 	<div class="slides">
@@ -40,7 +40,7 @@
         <a href="https://bit.ly/fn-php"><img src="assets/thinking-functionally.png" width="175px;" alt="Cover of Thinking Functionally in PHP" /></a>
 
         <ul style="text-wrap: nowrap">
-          <li style="margin-top: 1em;">JOB</li>
+          <li style="margin-top: 1em;">Available for hire!</li>
           <li style="margin-top: 1em;">PHP-FIG Core Committee</li>
           <li style="margin-top: 1em;">PHP Core Contributor</li>
           <li style="margin-top: 1em;">General purpose pedant</li>
@@ -51,7 +51,657 @@
 
     <section>
       <section>
+        <h2>Who are you?</h2>
+        <ul>
+          <li class="fragment">Already use PHPUnit</li>
+          <li class="fragment">Already support automated testing</li>
+          <li class="fragment">Want to get better at it</li>
+        </ul>
+        <p class="fragment">If this is not you, one of us is in the wrong room</p>
       </section>
+      <section>
+        <h2>This talk is not</h2>
+        <ul>
+          <li class="fragment">An intro to PHPUnit</li>
+          <li class="fragment">An intro to the value of testing</li>
+        </ul>
+        <p class="fragment">We're focusing on PHPUnit 12/13</p>
+      </section>
+      <section>
+        <h2>This talk is</h2>
+        <ul>
+          <li class="fragment">Focused on PHPUnit 12/13</li>
+          <li class="fragment">Intended to teach you at least one new thing</li>
+        </ul>
+      </section>
+    </section>
+    <section>
+      <section>
+        <h2>Odds and ends</h2>
+      </section>
+      <section data-auto-animate data-auto-animate-id="phpunit-xml">
+        <h2>Custom cache directory</h2>
+        <pre data-id="phpunit-xml"><code class="xml font--16" data-trim data-line-numbers>
+          <?xml version="1.0" encoding="UTF-8"?>
+            <phpunit bootstrap="vendor/autoload.php">
+              <testsuites>
+                  <testsuite name="default">
+                      <directory>tests</directory>
+                  </testsuite>
+              </testsuites>
+
+              <source ignoreIndirectDeprecations="true">
+                  <include>
+                      <directory>src</directory>
+                  </include>
+              </source>
+          </phpunit>
+        </code></pre>
+      </section>
+      <section data-auto-animate data-auto-animate-id="phpunit-xml">
+        <h2>Custom cache directory</h2>
+        <pre data-id="phpunit-xml"><code class="xml font--16" data-trim data-line-numbers>
+          <?xml version="1.0" encoding="UTF-8"?>
+            <phpunit bootstrap="vendor/autoload.php" cacheDirectory="build/phpunit.cache">
+              <testsuites>
+                  <testsuite name="default">
+                      <directory>tests</directory>
+                  </testsuite>
+              </testsuites>
+
+              <source ignoreIndirectDeprecations="true">
+                  <include>
+                      <directory>src</directory>
+                  </include>
+              </source>
+          </phpunit>
+        </code></pre>
+      </section>
+      <section data-auto-animate data-auto-animate-id="sizing">
+        <h2>Example code</h2>
+        <pre><code class="php font--18" data-trim data-noescape data-line-numbers>
+          class Rectangle implements TwoDShape {
+              public float $area { get => $this->height * $this->width; }
+
+              public function __construct(public int $height, public int $width) {}
+          }
+        </code></pre>
+        <pre class="fragment"><code class="php font--18" data-trim data-noescape data-line-numbers>
+          class RectangleTest extends TestCase {
+              #[Test]
+              public function areaOf2x2is4(): void {
+                  $r = new Rectangle(2, 2);
+                  self::assertSame(4.0, $r->area);
+              }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Note we're using property hooks!  They're cool.</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="sizing">
+        <h2>Test sizing</h2>
+        <pre><code class="php font--18" data-trim data-noescape data-line-numbers>
+          #[Small]
+          class RectangleTest extends TestCase {
+              #[Test]
+              public function areaOf2x2is4(): void {
+                  $r = new Rectangle(2, 2);
+                  self::assertSame(4.0, $r->area);
+              }
+          }
+        </code></pre>
+        <ul>
+          <li class="fragment">Also <code>#[Medium]</code> and <code>#[Large]</code></li>
+          <li class="fragment">Small ~ Unit, Large ~ Integration</li>
+          <li class="fragment">You define the line for your project</li>
+        </ul>
+        <aside class="notes">
+          <ul>
+            <li>On the class, not method.</li>
+            <li>Small implies fast, higher precision</li>
+            <li>Useful for code coverage details</li>
+            <li>You get to define where the line is for your project</li>
+          </ul>
+        </aside>
+      </section>
+    </section>
+    <section>
+      <section>
+        <h2>Multiplicative tests</h2>
+      </section>
+      <section data-auto-animate data-auto-animate-id="multiplicative-tests">
+        <h2>Redundant tests :-(</h2>
+        <pre data-id="shape-tests"><code class="php font--16" data-trim data-noescape data-line-numbers>
+        #[Small]
+        class RectangleTest extends TestCase {
+          #[Test]
+          public function areaOf2x2is4(): void {
+            $r = new Rectangle(2, 2);
+            self::assertSame(4.0, $r->area);
+          }
+
+          #[Test]
+          public function areaOf3x2is6(): void {
+            $r = new Rectangle(3, 2);
+            self::assertSame(6.0, $r->area);
+          }
+
+          #[Test]
+          public function areaOf2x3is6(): void {
+            $r = new Rectangle(2, 3);
+            self::assertSame(6.0, $r->area);
+          }
+        }
+        </code></pre>
+      </section>
+      <section data-auto-animate data-auto-animate-id="multiplicative-tests">
+        <h2><code>#[TestWith]</code></h2>
+        <pre data-id="shape-tests"><code class="php font--16" data-trim data-noescape data-line-numbers>
+        #[Small]
+        class RectangleTest extends TestCase {
+          #[Test]
+          #[TestWith([2, 2, 4], '2x2=4')]
+          #[TestWith([3, 2, 6], '3x2=6')]
+          #[TestWith([2, 3, 6], '2x3=6')]
+          public function area(int $height, int $width, float $expectedArea): void {
+            $r = new Rectangle($height, $width);
+            self::assertSame($expectedArea, $r->area);
+          }
+        }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Give test function parameters</li>
+            <li>First arg is an array of values to pass</li>
+            <li>Second arg is an optional name</li>
+            <li>Can only pass constant values</li>
+            <li>Keeps everything together in one spot</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="multiplicative-tests">
+        <h2>Data providers</h2>
+        <pre data-id="shape-tests"><code class="php font--16" data-trim data-noescape data-line-numbers>
+        #[Small]
+        class RectangleTest extends TestCase {
+          public static function areaProvider(): array {
+            return [
+              [2, 2, 4],
+              [3, 2, 6],
+              [2, 3, 6],
+            ];
+          }
+
+          #[Test]
+          #[DataProvider('areaProvider')]
+          public function areaWithProvider(int $height, int $width, float $expectedArea): void {
+              $r = new Rectangle($height, $width);
+              self::assertSame($expectedArea, $r->area);
+          }
+        }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Reusable</li>
+            <li>More flexible; can build values dynamically</li>
+            <li>Static! Can't access dyn properties</li>
+            <li>Array of arrays is a code smell</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="multiplicative-tests">
+        <h2>Data generators</h2>
+        <pre data-id="shape-tests"><code class="php font--16" data-trim data-noescape data-line-numbers>
+        #[Small]
+        class RectangleTest extends TestCase {
+          public static function areaProvider(): \Generator {
+            yield [2, 2, 4];
+            yield [3, 2, 6];
+            yield [2, 3, 6];
+          }
+
+          #[Test]
+          #[DataProvider('areaProvider')]
+          public function areaWithProvider(int $height, int $width, float $expectedArea): void {
+              $r = new Rectangle($height, $width);
+              self::assertSame($expectedArea, $r->area);
+          }
+        }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Materializes all in advance</li>
+            <li>Mainly beneficial for readability/maintainability</li>
+            <li>I do this 100% of the time</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="multiplicative-tests">
+        <h2>Data generators</h2>
+        <pre data-id="shape-tests"><code class="php font--16" data-trim data-noescape data-line-numbers>
+        #[Small]
+        class RectangleTest extends TestCase {
+          public static function areaProvider(): \Generator {
+            yield '2x2=4' => [2, 2, 4];
+            yield '3x2=6' => [3, 2, 6];
+            yield '2x3=6' => [2, 3, 6];
+          }
+
+          #[Test]
+          #[DataProvider('areaProvider')]
+          public function areaWithProvider(int $height, int $width, float $expectedArea): void {
+              $r = new Rectangle($height, $width);
+              self::assertSame($expectedArea, $r->area);
+          }
+        }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Names show up in error output</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="multiplicative-tests">
+        <h2>Data generators error output</h2>
+        <pre data-id="provider-test-output"><code class="bash font--16" data-trim data-noescape data-line-numbers="|9">
+          $ vendor/bin/phpunit --filter areaWithProvider
+
+          ..F                                                              6 / 6 (100%)
+
+          Time: 00:00.003, Memory: 14.00 MB
+
+          There was 1 failure:
+
+          1) RectangleTest::areaWithProvider@2x2=4 with data (2, 2, 5)
+          Failed asserting that 4.0 is identical to 5.0.
+
+          FAILURES!
+          Tests: 3, Assertions: 3, Failures: 1.
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Can use name to select an individual data set</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="multiplicative-tests">
+        <h2>Data generators error output</h2>
+        <pre data-id="provider-test-output"><code class="bash font--16" data-trim data-noescape data-line-numbers>
+          $ vendor/bin/phpunit --filter areaWithProvider@2x2=4
+
+          F                                                              6 / 6 (100%)
+
+          Time: 00:00.003, Memory: 14.00 MB
+
+          There was 1 failure:
+
+          1) RectangleTest::areaWithProvider@2x2=4 with data (2, 2, 5)
+          Failed asserting that 4.0 is identical to 5.0.
+
+          FAILURES!
+          Tests: 1, Assertions: 1, Failures: 1.
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Always use generator data providers</li>
+            <li>Always name your test cases</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="multiplicative-tests">
+        <h2>Named arguments</h2>
+        <pre data-id="provider-test-output"><code class="php font--16" data-trim data-noescape data-line-numbers>
+        #[Small]
+        class RectangleTest extends TestCase {
+          public static function areaProvider(): \Generator {
+            yield '2x2=4' => [
+                'height' => 2,
+                'width' => 2,
+                'expectedArea' => 5,
+            ];
+            yield '3x2=6' => [
+                'height' => 3,
+                'width' => 2,
+                'expectedArea' => 6,
+            ];
+            yield '2x3=6' => [
+                'expectedArea' => 6, // Out of order is fine.
+                'height' => 2,
+                'width' => 3,
+            ];
+          }
+
+          #[Test]
+          #[DataProvider('areaProvider')]
+          public function areaWithProvider(int $height, int $width, float $expectedArea): void {
+              $r = new Rectangle($height, $width);
+              self::assertSame($expectedArea, $r->area);
+          }
+        }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Didn't work in older PHPUnit versions</li>
+            <li>More self-documenting</li>
+            <li>Allows optional parameters</li>
+            <li>Always use generator data providers</li>
+            <li>Always name your test cases</li>
+            <li>Always use named args</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="complex-multiplicative-tests">
+        <h2>Complex providers</h2>
+        <pre data-id="request-tests"><code class="php font--16" data-trim data-noescape data-line-numbers="|5,8|10-11|6,12-22">
+        #[Large]
+        class RequestHandlerTest extends TestCase {
+          #[Test, DataProvider('handlersProvider')]
+          public function handlers(
+            string $method, string|UriInterface $uri, $headers = [], ?string $body = null,
+            int $expectedCode = 200, array $expectedHeaders = [], ?string $expectedBody = null,
+            ): void {
+            $request = new ServerRequest($method, $uri, $headers, $body);
+
+            $handler = new RequestHandler();
+            $res = $handler->handle($request);
+
+            self::assertSame($expectedCode, $res->getStatusCode());
+            if ($expectedBody) {
+              self::assertSame($expectedBody, (string) $res->getBody());
+            }
+
+            foreach ($expectedHeaders as $header => $value) {
+              $v = $res->getHeaderLine($header);
+              self::assertNotNull($v);
+              self::assertSame($value, $v);
+            }
+          }
+        }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>PSR-7/15</li>
+            <li>Specify each test by its parts</li>
+            <li>This works, but looks super ugly</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="complex-multiplicative-tests">
+        <h2>Complex providers</h2>
+        <pre data-id="request-tests"><code class="php font--16" data-trim data-noescape data-line-numbers>
+        #[Large]
+        class RequestHandlerTest extends TestCase {
+          public static function handlersProvider(): \Generator {
+            yield 'just confirm a 200' => [
+              'method' => 'GET',
+              'uri' => '/beep',
+              'expectedBody' => 'boop',   // Optional
+            ];
+
+            yield 'confirm a not-found URL' => [
+              'method' => 'GET',
+              'uri' => '/missing',
+              'expectedCode' => 404,     // Optional, and don't check the body
+            ];
+
+            yield 'create an object' => [
+              'method' => 'POST',
+              'uri' => '/create',
+              'expectedCode' => 201,    // Override default
+              'expectedHeaders' => ['Location' => '/beep/1'], // Triggers the foreach
+            ];
+          }
+        }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>This is where the named args are very useful</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="complex-multiplicative-tests">
+        <h2>Better complex providers</h2>
+        <pre data-id="request-tests"><code class="php font--14" data-trim data-noescape data-line-numbers="|5,8">
+        #[Large]
+        class RequestHandlerTest extends TestCase {
+          #[Test, DataProvider('handlersProvider')]
+          public function handlers(
+            string $method, string|UriInterface $uri, $headers = [], ?string $body = null,
+            int $expectedCode = 200, array $expectedHeaders = [], ?string $expectedBody = null,
+            ): void {
+            $request = new ServerRequest($method, $uri, $headers, $body);
+
+            $handler = new RequestHandler();
+            $res = $handler->handle($request);
+
+            self::assertSame($expectedCode, $res->getStatusCode());
+            if ($expectedBody) {
+              self::assertSame($expectedBody, (string) $res->getBody());
+            }
+
+            foreach ($expectedHeaders as $header => $value) {
+              $v = $res->getHeaderLine($header);
+              self::assertNotNull($v);
+              self::assertSame($value, $v);
+            }
+          }
+        }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>This is still ugly.  Can we do better here?  Yes!</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="complex-multiplicative-tests">
+        <h2>Objects FTW</h2>
+        <pre data-id="request-tests"><code class="php font--14" data-trim data-noescape data-line-numbers="5">
+        #[Large]
+        class RequestHandlerTest extends TestCase {
+          #[Test, DataProvider('handlersProvider')]
+          public function handlers(
+            ServerRequest $request,
+            int $expectedCode = 200, array $expectedHeaders = [], ?string $expectedBody = null,
+            ): void {
+            $handler = new RequestHandler();
+            $res = $handler->handle($request);
+
+            self::assertSame($expectedCode, $res->getStatusCode());
+            if ($expectedBody) {
+              self::assertSame($expectedBody, (string) $res->getBody());
+            }
+
+            foreach ($expectedHeaders as $header => $value) {
+              $v = $res->getHeaderLine($header);
+              self::assertNotNull($v);
+              self::assertSame($value, $v);
+            }
+          }
+        }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Data providers are not limited to primitives.</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="complex-multiplicative-tests">
+        <h2>Simpler data provider, too</h2>
+        <pre data-id="request-tests"><code class="php font--14" data-trim data-noescape data-line-numbers="">
+        #[Large]
+        class RequestHandlerTest extends TestCase {
+          #[Test, DataProvider('handlersProvider')]
+          public function handlers(
+            ServerRequest $request,
+            int $expectedCode = 200, array $expectedHeaders = [], ?string $expectedBody = null,
+            ): void {
+            $handler = new RequestHandler();
+            $res = $handler->handle($request);
+
+            // Assertions here
+          }
+
+          public static function handlersProvider(): \Generator {
+            yield 'just confirm a 200' => [
+                'request' => new ServerRequest('GET', '/beep'),
+            ];
+
+            yield 'confirm a not-found URL' => [
+              'request' => new ServerRequest('GET', '/missing'),
+              'expectedCode' => 404,
+            ];
+
+            yield 'create an object' => [
+              'request' => new ServerRequest('POST', '/create'),
+              'expectedCode' => 201,
+              'expectedHeaders' => ['Location' => '/beep/1'],
+            ];
+          }
+        }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Simplifies the test method and the provider.</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="complex-multiplicative-tests">
+        <h2>Can we do the same for assertions?</h2>
+        <pre data-id="request-tests"><code class="php font--14" data-trim data-noescape data-line-numbers="11-20">
+        #[Large]
+        class RequestHandlerTest extends TestCase {
+          #[Test, DataProvider('handlersProvider')]
+          public function handlers(
+            ServerRequest $request,
+            int $expectedCode = 200, array $expectedHeaders = [], ?string $expectedBody = null,
+            ): void {
+            $handler = new RequestHandler();
+            $res = $handler->handle($request);
+
+            self::assertSame($expectedCode, $res->getStatusCode());
+            if ($expectedBody) {
+              self::assertSame($expectedBody, (string) $res->getBody());
+            }
+
+            foreach ($expectedHeaders as $header => $value) {
+              $v = $res->getHeaderLine($header);
+              self::assertNotNull($v);
+              self::assertSame($value, $v);
+            }
+          }
+
+          public static function handlersProvider(): \Generator {
+            // ...
+          }
+        }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>The assertions are still kinda ugly.</li>
+            <li>Can we make those nicer?  Two different ways!</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="complex-multiplicative-tests">
+        <h2>1. Self-validating complex providers</h2>
+        <pre data-id="request-tests"><code class="php font--14" data-trim data-noescape data-line-numbers="2-7|9-31">
+        class RequestHandlerTest extends TestCase {
+          #[Test, DataProvider('handlersProvider')]
+          public function v3(ServerRequest $request, \Closure $checks): void {
+            $handler = new RequestHandler();
+            $res = $handler->handle($request);
+            $checks($res);
+          }
+
+          public static function handlersProvider(): \Generator {
+            yield 'just confirm a 200' => [
+              'request' => new ServerRequest('GET', '/beep', []),
+              'checks' => static function(ResponseInterface $response) {
+                self::assertSame(200, $response->getStatusCode());
+              },
+            ];
+
+            yield 'confirm a not-found URL' => [
+              'request' => new ServerRequest('GET', '/missing'),
+              'checks' => static function (ResponseInterface $response) {
+                self::assertSame(404, $response->getStatusCode());
+              },
+            ];
+
+            yield 'create an object' => [
+              'request' => new ServerRequest('POST', '/create'),
+              'checks' => static function (ResponseInterface $response) {
+                self::assertSame(201, $response->getStatusCode());
+                self::assertSame('/beep/1', $response->getHeaderLine('Location'));
+              },
+            ];
+          }
+        }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Nothing stops you from passing a closure object!</li>
+            <li>The test method itself is now trivial</li>
+            <li>I care about different things in different test cases</li>
+            <li>Get a type check for free</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="complex-multiplicative-tests">
+        <h2>2. Custom macro-assertions</h2>
+        <pre data-id="request-tests"><code class="php font--14" data-trim data-noescape data-line-numbers="|5,10-12|15-27">
+        class RequestHandlerTest extends TestCase {
+          #[Test, DataProvider('handlersProvider')]
+          public function handlers(
+            ServerRequest $request,
+            int $expectedCode = 200, array $expectedHeaders = [], ?string $expectedBody = null,
+            ): void {
+            $handler = new RequestHandler();
+            $res = $handler->handle($request);
+
+            self::assertSame($expectedCode, $res->getStatusCode());
+            self::assertBody($expectedBody, $res);
+            self::assertHeaders($expectedHeaders, $res);
+          }
+
+          protected static function assertBody(?string $expectedBody, ResponseInterface $res): void {
+            if ($expectedBody) {
+              self::assertSame($expectedBody, (string) $res->getBody());
+            }
+          }
+
+          protected static function assertHeaders(array $expectedHeaders, ResponseInterface $res): void {
+            foreach ($expectedHeaders as $header => $value) {
+              $v = $res->getHeaderLine($header);
+              self::assertNotNull($v);
+              self::assertSame($value, $v);
+            }
+          }
+        }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>For when checks are complex, but consistent between tests</li>
+            <li>Which is better?  Depends what you're doing</li>
+            <li>Call a custom assertion from a callback closure, too!</li>
+          </ul>
+        </aside>
+      </section>
+      <section>
+        <h2>Summary</h2>
+        <ul>
+          <li class="fragment">Simple cases: <code>#[TestWith]</code></li>
+          <li class="fragment">Most cases: Data providers</li>
+          <li class="fragment">Always use a generator provider</li>
+          <li class="fragment">Name your tests and your arguments</li>
+          <li class="fragment">Assertion callbacks in tests are neat</li>
+          <li class="fragment">Use custom assertion wrappers liberally</li>
+        </ul>
+      </section>
+
     </section>
 
     <div style="display:none">
@@ -65,6 +715,7 @@
         * Focused on PHPUnit 12/13
       * Topics
         * Custom cache dir
+        * S/M/L tests
         * Data providers
           * #[TestWith]
           * provider methods
