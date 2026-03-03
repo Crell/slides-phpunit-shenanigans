@@ -16,9 +16,7 @@ class IntegrationTest extends TestCase
     public function setUp(): void
     {
         // Set up a fake Doctrine instance.
-        $dsnParser = new DsnParser();
-        $connectionParams = $dsnParser
-            ->parse('pdo-sqlite:///:memory:');
+        $connectionParams = new DsnParser()->parse('pdo-sqlite:///:memory:');
         $this->conn = DriverManager::getConnection($connectionParams);
 
         $this->conn->executeQuery('CREATE TABLE users ...');
@@ -28,9 +26,7 @@ class IntegrationTest extends TestCase
     public function setupDoctrine(): void
     {
         // Set up a fake Doctrine instance.
-        $dsnParser = new DsnParser();
-        $connectionParams = $dsnParser
-            ->parse('pdo-sqlite:///:memory:');
+        $connectionParams = new DsnParser()->parse('pdo-sqlite:///:memory:');
         $this->conn = DriverManager::getConnection($connectionParams);
     }
 

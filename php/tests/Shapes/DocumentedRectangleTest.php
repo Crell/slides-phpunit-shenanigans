@@ -30,7 +30,7 @@ class DocumentedRectangleTest extends TestCase
         ];
     }
 
-//    #[Test]
+    #[Test]
 //    #[TestDox('Area validation')]
     #[TestDox('A rectangle with height $height and width $width has an area of $expectedArea')]
     #[DataProvider('areaProvider')]

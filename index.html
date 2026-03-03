@@ -16,7 +16,28 @@
   <link rel="stylesheet" href="plugin/highlight/monokai.css" id="highlight-theme">
 
   <style>
+@media screen and (prefers-reduced-motion: reduce) {
+  .animate { animation: none !important; }
+}
 
+@keyframes animate-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5, 0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1, 1);
+  }
+}
+
+.reveal p.wrong {
+  /* Not working yet */
+  animation-name: animate-pop;
+  transition-property: font-size;
+  transition-behavior: allow-discrete;
+  transition-duration: 0.2s;
+}
   </style>
 
 </head>
@@ -610,7 +631,7 @@
         <pre data-id="request-tests"><code class="php font--14" data-trim data-noescape data-line-numbers="2-7|9-31">
         class RequestHandlerTest extends TestCase {
           #[Test, DataProvider('handlersProvider')]
-          public function v3(ServerRequest $request, \Closure $checks): void {
+          public function handlers(ServerRequest $request, \Closure $checks): void {
             $handler = new RequestHandler();
             $res = $handler->handle($request);
             $checks($res);
@@ -687,6 +708,8 @@
             <li>For when checks are complex, but consistent between tests</li>
             <li>Which is better?  Depends what you're doing</li>
             <li>Call a custom assertion from a callback closure, too!</li>
+            <li>Not just for multi-tests, can use for any test</li>
+            <li>Built-in assertions are static, yours should be, too</li>
           </ul>
         </aside>
       </section>
@@ -701,7 +724,348 @@
           <li class="fragment">Use custom assertion wrappers liberally</li>
         </ul>
       </section>
+    </section>
+    <section>
+      <section>
+        <h2>Test setup</h2>
+      </section>
+      <section data-auto-animate data-auto-animate-id="test-setup">
+        <h2>The traditional way</h2>
+        <pre data-id="test-setup"><code class="php font--16" data-trim data-noescape data-line-numbers>
+          class IntegrationTest extends TestCase {
+              private Connection $conn;
 
+              public function setUp(): void {
+                $connectionParams = new DsnParser()->parse('pdo-sqlite:///:memory:');
+                $this->conn = DriverManager::getConnection($connectionParams);
+
+                $this->conn->executeQuery('CREATE TABLE users ...');
+              }
+
+              #[Test]
+              public function stuff(): void {
+                $this->conn->insert('users', ['id' => 1, 'name' => 'Larry']);
+                // Do stuff ...
+                $result = $this->conn->executeQuery('SELECT ...')->fetchOne();
+                self::assertSame('Larry', $result);
+              }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Very common way to do common setup for tests</li>
+            <li>We're doing two different things in one method, could be many more</li>
+            <li>I never do this anymore</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="test-setup">
+        <h2>The flexible way</h2>
+        <pre data-id="test-setup"><code class="php font--16" data-trim data-noescape data-line-numbers>
+          class IntegrationTest extends TestCase {
+              private Connection $conn;
+
+              #[Before(20)]
+              public function setupDoctrine(): void {
+                $connectionParams = new DsnParser()->parse('pdo-sqlite:///:memory:');
+                $this->conn = DriverManager::getConnection($connectionParams);
+              }
+
+              #[Before(10)]
+              public function setupTables(): void {
+                $this->conn->executeQuery('CREATE TABLE users ...');
+              }
+
+              #[Test]
+              public function stuff(): void {
+                $this->conn->insert('users', ['id' => 1, 'name' => 'Larry']);
+                // Do stuff ...
+                $result = $this->conn->executeQuery('SELECT ...')->fetchOne();
+                self::assertSame('Larry', $result);
+              }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Arbitrary number of named setup methods</li>
+            <li>No inheritance question</li>
+            <li>Priority ordering (higher number wins)</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="test-setup">
+        <h2>Also class-level options</h2>
+        <pre data-id="test-setup"><code class="php font--16" data-trim data-noescape data-line-numbers>
+          class IntegrationTest extends TestCase {
+              private static Connection $conn;
+
+              #[BeforeClass(20)]
+              public static function setupDoctrine(): void {
+                $connectionParams = new DsnParser()->parse('pdo-sqlite:///:memory:');
+                self::$conn = DriverManager::getConnection($connectionParams);
+              }
+
+              #[BeforeClass(10)]
+              public static function setupTables(): void {
+                self::$conn->executeQuery('CREATE TABLE users ...');
+              }
+
+              #[Test]
+              public function stuff(): void {
+                self::$conn->insert('users', ['id' => 1, 'name' => 'Larry']);
+                // Do stuff ...
+                $result = $this->conn->executeQuery('SELECT ...')->fetchOne();
+                self::assertSame('Larry', $result);
+              }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Same as setupBeforeClass(), but all the same benefits as before</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="test-setup">
+        <h2><code>#[After]</code> and <code>#[AfterClass]</code></h2>
+        <pre data-id="test-setup"><code class="php font--16" data-trim data-noescape data-line-numbers>
+          class IntegrationTest extends TestCase {
+              private static Connection $conn;
+
+              #[BeforeClass(20)]
+              public static function setupDoctrine(): void {
+                $connectionParams = new DsnParser()->parse('pdo-sqlite:///:memory:');
+                self::$conn = DriverManager::getConnection($connectionParams);
+              }
+
+              #[BeforeClass(10)]
+              public static function setupTables(): void {
+                self::$conn->executeQuery('CREATE TABLE users ...');
+              }
+
+              #[After]
+              public function cleanupTables(): void {
+                self::$conn->executeQuery('DELETE FROM users');
+              }
+
+              #[Test]
+              public function stuff(): void {
+                self::$conn->insert('users', ['id' => 1, 'name' => 'Larry']);
+                // Do stuff ...
+                $result = $this->conn->executeQuery('SELECT ...')->fetchOne();
+                self::assertSame('Larry', $result);
+              }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>After variants of both, too</li>
+          </ul>
+        </aside>
+      </section>
+      <section>
+        <blockquote>But what if I want to reuse my setup methods? That means a utility base class, right?</blockquote>
+        <p class="fragment wrong bigdeal">Wrong!</p>
+        <p class="fragment oversize">Traits</p>
+        <aside class="notes">
+          <ul>
+            <li>There is a time/place for base classes, but not this</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="test-setup">
+        <h2>Back to our code</h2>
+        <pre data-id="test-setup"><code class="php font--14" data-trim data-noescape data-line-numbers>
+          class IntegrationTest extends TestCase {
+              private static Connection $conn;
+
+              #[BeforeClass(20)]
+              public static function setupDoctrine(): void {
+                $connectionParams = new DsnParser()->parse('pdo-sqlite:///:memory:');
+                self::$conn = DriverManager::getConnection($connectionParams);
+              }
+
+              #[BeforeClass(10)]
+              public static function setupTables(): void {
+                self::$conn->executeQuery('CREATE TABLE users ...');
+              }
+
+              #[After]
+              public function cleanupTables(): void {
+                self::$conn->executeQuery('DELETE FROM users');
+              }
+
+              #[Test]
+              public function stuff(): void {
+                self::$conn->insert('users', ['id' => 1, 'name' => 'Larry']);
+                // Do stuff ...
+                $result = $this->conn->executeQuery('SELECT ...')->fetchOne();
+                self::assertSame('Larry', $result);
+              }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Same as we saw before</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="test-setup">
+        <h2>Move utilities to traits</h2>
+        <pre data-id="test-setup"><code class="php font--14" data-trim data-noescape data-line-numbers="|1,10,11,24,25">
+          trait UseDoctrine {
+            private static Connection $conn;
+
+            #[BeforeClass(20)]
+            public static function setupDoctrine(): void {
+              $connectionParams = new DsnParser()->parse('pdo-sqlite:///:memory:');
+              self::$conn = DriverManager::getConnection($connectionParams);
+            }
+          }
+          trait UseUserTable {
+            use UseDoctrine;
+
+           #[BeforeClass(10)]
+            public static function setupTables(): void {
+              self::$conn->executeQuery('CREATE TABLE users ...');
+            }
+
+            #[After]
+            public function cleanupTables(): void {
+              self::$conn->executeQuery('DELETE FROM users');
+            }
+          }
+          class IntegrationTest extends TestCase {
+              use UseDoctrine;
+              use UserUserTable;
+
+              // Tests here
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Traits are compile-time copy-paste. That's what we want!</li>
+            <li>Could organize as one trait, 2, 3, up to you</li>
+            <li>Very useful for common fixtures</li>
+            <li>Also great for custom assertions!</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate>
+        <h2>Assertion utilities</h2>
+        <pre><code class="php font--14" data-trim data-noescape data-line-numbers="|1,11,12">
+          trait ResponseAssertions {
+            protected static function assertBody(?string $expectedBody, ResponseInterface $res): void {
+              // Same as before
+            }
+
+            protected static function assertHeaders(array $expectedHeaders, ResponseInterface $res): void {
+              // Same as before
+            }
+          }
+
+          class RequestHandlerTest extends TestCase {
+            use ResponseAssertions;
+
+            #[Test, DataProvider('handlersProvider')]
+            public function handlers(ServerRequest $request,
+              int $expectedCode = 200, array $expectedHeaders = [], ?string $expectedBody = null,
+              ): void {
+              $handler = new RequestHandler();
+              $res = $handler->handle($request);
+
+              self::assertSame($expectedCode, $res->getStatusCode());
+              self::assertBody($expectedBody, $res);
+              self::assertHeaders($expectedHeaders, $res);
+            }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Traits are compile-time copy-paste. That's what we want!</li>
+            <li>Could organize as one trait, 2, 3, up to you</li>
+            <li>Very useful for common fixtures</li>
+            <li>Also great for custom assertions!</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="test-setup">
+        <h2>Transaction-based test isolation</h2>
+        <pre data-id="test-setup"><code class="php font--16" data-trim data-noescape data-line-numbers>
+          trait TransactionIsolation {
+            use UseDoctrine;
+
+            #[Before]
+            public function startTransaction(): void {
+                self::$conn->beginTransaction();
+            }
+
+            #[After]
+            public function endTransaction(): void {
+                self::$conn->rollBack();
+            }
+          }
+
+          class IntegrationTest extends TestCase {
+              use UseDoctrine;
+              use TransactionIsolation;
+
+              // Tests here
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Neat trick for when you can't use a new DB for each test</li>
+            <li>Could get broken by DDL in MySQL, beware</li>
+            <li>Also useful if you need to run tests in real DB (or large fixture image)</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="test-setup">
+        <h2>Run Doctrine Migrations</h2>
+        <pre data-id="test-setup"><code class="php font--14" data-trim data-noescape data-line-numbers>
+          trait EnsureSchema {
+            protected static Connection $migrationConn;
+
+            #[BeforeClass(50)]
+            public static function createConnection(): void {
+              $connectionParams = [ ... ];
+              self::$migrationConn ??= DriverManager::getConnection($connectionParams);
+            }
+
+            #[BeforeClass(40)]
+            public static function executeMigrations(): void {
+              $newInput = new ArrayInput([]);
+              $output = new NullOutput();
+              $newInput->setInteractive(false);
+              $otherCommand = new MigrateCommand(self::getDependencyFactory());
+              $otherCommand->run($newInput, $output);
+            }
+
+            protected static function getDependencyFactory(): DependencyFactory {
+              // ...
+            }
+
+            protected static function getConfigLoader(Configuration $config): ConfigurationLoader {
+              // ..
+            }
+
+            protected static function getConnectionLoader(): ConnectionLoader {
+              // ...
+            }
+          }
+        </code></pre>
+        <p class="fragment">Too big and ugly for slides. Blog post to come.</p>
+        <aside class="notes">
+          <ul>
+            <li>Borrowed from other OSS code</li>
+            <li>Doctrine Migrations is crap for automation</li>
+            <li>Will blog at some point</li>
+          </ul>
+        </aside>
+      </section>
+      <section>
+        <p class="oversize">I'm sure you can find other uses...</p>
+      </section>
     </section>
 
     <div style="display:none">
