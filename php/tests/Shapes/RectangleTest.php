@@ -5,27 +5,29 @@ namespace Crell\Shenanigans\Shapes;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 
 #[Small]
+#[TestDox('Rectangles can compute their area')]
 class RectangleTest extends TestCase
 {
-    #[Test]
+    #[Test, TestDox('A 2x2 rectangle has an area of 4')]
     public function areaOf2x2is4(): void
     {
         $r = new Rectangle(2, 2);
         self::assertSame(4.0, $r->area);
     }
 
-    #[Test]
+    #[Test, TestDox('A 3x2 rectangle has an area of 6')]
     public function areaOf3x2is6(): void
     {
         $r = new Rectangle(3, 2);
         self::assertSame(6.0, $r->area);
     }
 
-    #[Test]
+    #[Test, TestDox('A 2x3 rectangle has an area of 6')]
     public function areaOf2x3is6(): void
     {
         $r = new Rectangle(2, 3);
@@ -70,7 +72,7 @@ class RectangleTest extends TestCase
         yield '2x2=4' => [
             'height' => 2,
             'width' => 2,
-            'expectedArea' => 5,
+            'expectedArea' => 4,
         ];
         yield '3x2=6' => [
             'height' => 3,

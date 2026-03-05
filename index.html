@@ -1067,7 +1067,218 @@
         <p class="oversize">I'm sure you can find other uses...</p>
       </section>
     </section>
+    <section>
+      <section>
+        <h2>Documentation</h2>
+      </section>
+      <section data-auto-animate data-auto-animate-id="testdox">
+        <h2>Standard output</h2>
+        <pre data-id="testdox"><code class="shell font--16" data-trim data-noescape data-line-numbers>
+          $ vendor/bin/phpunit tests/Shapes/RectangleTest.php
+          PHPUnit 13.0.5 by Sebastian Bergmann and contributors.
 
+          Runtime:       PHP 8.4.11
+          Configuration: /home/crell/Projects/shapes/phpunit.xml
+
+          .........                                                           9 / 9 (100%)
+
+          Time: 00:00.001, Memory: 14.00 MB
+
+          OK (9 tests, 9 assertions)
+        </code></pre>
+      </section>
+      <section data-auto-animate data-auto-animate-id="testdox">
+        <h2>With <code>--test-dox</code></h2>
+        <pre data-id="testdox"><code class="shell font--16" data-trim data-noescape data-line-numbers>
+          $ vendor/bin/phpunit tests/Shapes/RectangleTest.php --testdox
+          PHPUnit 13.0.5 by Sebastian Bergmann and contributors.
+
+          Runtime:       PHP 8.4.11
+          Configuration: /home/crell/Projects/shapes/phpunit.xml
+
+          .........                                                           9 / 9 (100%)
+
+          Time: 00:00.001, Memory: 14.00 MB
+
+          Rectangle (Crell\Shenanigans\Shapes\Rectangle)
+            ✔ Area with provider with data set "2x2=4"
+            ✔ Area with provider with data set "3x2=6"
+            ✔ Area with provider with data set "2x3=6"
+            ✔ Area with data set "2x2=4"
+            ✔ Area with data set "3x2=6"
+            ✔ Area with data set "2x3=6"
+            ✔ Area of 2x 2is 4
+            ✔ Area of 3x 2is 6
+            ✔ Area of 2x 3is 6
+
+          OK (9 tests, 9 assertions)
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Mangles the function name into a test name</li>
+            <li>Remove "test", split spaces, can get wonky (see last 3)</li>
+            <li>Mentions data sets</li>
+            <li>Also shows the class, minus "Test"</li>
+            <li>This is why you need self-documenting test method names, right?</li>
+          </ul>
+        </aside>
+      </section>
+      <section>
+        <p style="word-wrap: anywhere"><code>public function translateFormElementValueTranslateRenderingOptionForConcreteFormAndConcreteSectionElementIfElementRenderingOptionsContainsATranslationFilesAndElementRenderingOptionIsNotEmptyAndRenderingOptionShouldBeTranslatedAndTranslationExists(): void</code></p>
+        <p class="fragment bigdeal">WAT?</p>
+        <p class="fragment">Yes, this is real code from TYPO3</p>
+        <aside class="notes">
+          <ul>
+            <li>This is unreadable</li>
+            <li>255 characters long.</li>
+            <li>Trying to be self-documenting, but... not.</li>
+          </ul>
+        </aside>
+      </section>
+      <section>
+        <h2>Separate code from English</h2>
+        <pre data-id="test-setup"><code class="php font--14" data-trim data-noescape data-line-numbers>
+          #[Test]
+          #[TestDox('If translations are enabled and there are translation files, they should be used')]
+          public function translationsEnabledFiles(): void {
+            // ...
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>I think. I don't know what the method actually does.</li>
+            <li>Vastly easier to read.</li>
+            <li>PHPUnit will use that instead of the method name.</li>
+            <li>Keep your method name easy!</li>
+            <li>Let's look at our shape code</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="testdox">
+        <h2>One-off test dox</h2>
+        <pre data-id="code"><code class="php font--14" data-trim data-noescape data-line-numbers>
+          #[TestDox('Rectangles can compute their area')]
+          class RectangleTest extends TestCase {
+
+            #[Test, TestDox('A 2x2 rectangle has an area of 4')]
+            public function areaOf2x2is4(): void {
+              // ...
+            }
+
+            #[Test, TestDox('A 3x2 rectangle has an area of 6')]
+            public function areaOf3x2is6(): void {
+              // ...
+            }
+
+            #[Test, TestDox('A 2x3 rectangle has an area of 6')]
+            public function areaOf2x3is6(): void {
+              // ...
+            }
+          }
+        </code></pre>
+        <pre class="fragment" data-id="testdox"><code class="shell font--16" data-trim data-noescape data-line-numbers>
+          $ vendor/bin/phpunit tests/Shapes/RectangleTest.php --testdox
+          // ...
+          Rectangles can compute their area
+           ✔ A 2x2 rectangle has an area of 4
+           ✔ A 3x2 rectangle has an area of 6
+           ✔ A 2x3 rectangle has an area of 6
+
+          OK (3 tests, 3 assertions)
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Can document the class, too</li>
+            <li>Documents what the test verifies, in clear English</li>
+            <li>Becomes documentation/acceptance criteria</li>
+            <li>Just run --testdox and get an explanation of what the code should do</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="testdox">
+        <h2>Data providers and test dox</h2>
+        <pre data-id="code"><code class="php font--14" data-trim data-noescape data-line-numbers>
+          #[TestDox('Rectangles can compute their area')]
+          class RectangleTest extends TestCase {
+            public static function areaProvider(): \Generator {
+              yield '2x2=4' => [ ... ];
+              yield '3x2=6' => [ ... ];
+              yield '2x3=6' => [ ... ];
+            }
+
+            #[Test, DataProvider('areaProvider')]
+            #[TestDox('A rectangle with height $height and width $width has an area of $expectedArea')]
+            public function areaWithProvider(int $height, int $width, float $expectedArea): void {
+              $r = new Rectangle($height, $width);
+              self::assertSame($expectedArea, $r->area);
+            }
+        }
+        </code></pre>
+        <pre class="fragment" data-id="testdox"><code class="shell font--16" data-trim data-noescape data-line-numbers>
+          $ vendor/bin/phpunit tests/Shapes/RectangleTest.php --testdox
+          // ...
+          Rectangles can compute their area
+           ✔ A rectangle with height 2 and width 2 has an area of 4
+           ✔ A rectangle with height 3 and width 2 has an area of 6
+           ✔ A rectangle with height 2 and width 3 has an area of 6
+
+          OK (3 tests, 3 assertions)
+        </code></pre>
+        <p class="fragment"><code>$_dataName</code> to get the dataset name</p>
+        <aside class="notes">
+          <ul>
+            <li>Must use single-quotes</li>
+            <li>Doesn't show the dataset name now</li>
+            <li>Can use $_dataName if needed</li>
+            <li>What about non-stringy datasets?</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="testdox">
+        <h2>Custom dox formatters</h2>
+        <pre data-id="code"><code class="php font--14" data-trim data-noescape data-line-numbers>
+          #[Large, TestDox('RequestHandler returns expected response')]
+          class RequestHandlerTest extends TestCase {
+              #[Test, DataProvider('handlersProvider')]
+              #[TestDoxFormatter('handlersFormatter')]
+              public function handlers(
+                  ServerRequest $request,
+                  int $expectedCode = 200, array $expectedHeaders = [], ?string $expectedBody = null,
+              ): void {
+                  // ...
+              }
+
+              public static function handlersFormatter(
+                  ServerRequest $request,
+                  int $expectedCode = 200, array $expectedHeaders = [], ?string $expectedBody = null,
+              ): string {
+                  $formattedRequest = sprintf('%s %s', $request->getMethod(), $request->getUri()->getPath());
+                  return sprintf('%s responds with %d', $formattedRequest, $expectedCode);
+              }
+
+              public static function handlersProvider(): \Generator { ... }
+          }
+        </code></pre>
+        <pre class="fragment" data-id="testdox"><code class="shell font--16" data-trim data-noescape data-line-numbers>
+          $ vendor/bin/phpunit tests/Shapes/RectangleTest.php --testdox
+          // ...
+          RequestHandler returns expected response
+           ✔ GET /missing responds with 404
+           ✔ POST /create responds with 201
+           ✔ GET /beep responds with 200
+
+          OK (3 tests, 5 assertions)
+        </code></pre>
+        <p class="fragment"><code>$_dataName</code> to get the dataset name</p>
+        <aside class="notes">
+          <ul>
+            <li>Formatter callback gets the same args as the test method</li>
+            <li>Return whatever string you want, however you want</li>
+            <li>If tests are a form of documentation, TestDox ARE the documentation.</li>
+          </ul>
+        </aside>
+      </section>
+    </section>
     <div style="display:none">
       * Who you are
         * Use PHPUnit

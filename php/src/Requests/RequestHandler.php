@@ -11,6 +11,10 @@ class RequestHandler implements RequestHandlerInterface
 {
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        return new Response();
+        return match ($request->getUri()->getPath()) {
+            '/beep' => new Response(200),
+            '/create' => new Response(201)->withHeader('Location', '/beep/1'),
+            default => new Response(404),
+        };
     }
 }
