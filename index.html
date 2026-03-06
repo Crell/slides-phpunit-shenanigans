@@ -1269,16 +1269,208 @@
 
           OK (3 tests, 5 assertions)
         </code></pre>
-        <p class="fragment"><code>$_dataName</code> to get the dataset name</p>
         <aside class="notes">
           <ul>
             <li>Formatter callback gets the same args as the test method</li>
+            <li>Cannot access dataName, sadly</li>
             <li>Return whatever string you want, however you want</li>
             <li>If tests are a form of documentation, TestDox ARE the documentation.</li>
           </ul>
         </aside>
       </section>
     </section>
+    <section>
+      <section>
+        <h2>Test organization</h2>
+        <ul>
+          <li class="fragment">Test isolation is good</li>
+          <li class="fragment">Sometimes you just need to hit the DB</li>
+          <li class="fragment">Those tests will be slow</li>
+        </ul>
+        <aside class="notes">
+          <ul>
+            <li>Most tests should be unit tests</li>
+            <li>Integration tests will need to hit the DB</li>
+            <li>If connecting to a third party, need some automated way to test that</li>
+            <li>Don't hammer third party on every test run!</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="groups">
+        <h2>Based on a true story</h2>
+        <pre data-id="groups"><code class="php font--16" data-trim data-noescape data-line-numbers>
+          class Sync {
+            public function __construct(
+              private Client $client,
+              private Connection $conn,
+            ) {}
+
+            public function getData(): string {
+              $this->client->send('...');
+              return $this->client->getResponse()->getBody()->toString();
+            }
+
+            public function saveData(string $data): void {
+              $this->conn->insert('synced_data', ['data' => $data]);
+            }
+
+            public function cleanData(string $data): string {
+              return strtolower($data);
+            }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Based on real code from my last company</li>
+            <li>Yes, yes, mocking and stubs, sure</li>
+            <li>Cannot be confident it works without running it for real, at least sometimes</li>
+            <li>Do not run in CI on every PR, or your 3rd party will hate you</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="groups">
+        <h2>These tests are rude</h2>
+        <pre data-id="groups"><code class="php font--16" data-trim data-noescape data-line-numbers>
+          class SyncTest extends TestCase {
+              use UseDoctrine;
+              private Sync $sync;
+
+              #[Before]
+              public function makeSubject(): void {
+                  $this->sync = new Sync(new Client(), $this->conn);
+              }
+
+              #[Test]
+              public function cleaning(): void {
+                  self::assertSame('blah', $this->sync->cleanData('Blah'));
+              }
+
+              #[Test]
+              public function writeToDb(): void {
+                  $this->sync->saveData('...');
+                  self::assertEquals('...', $this->conn->executeQuery("...")->fetchOne());
+              }
+
+              #[Test]
+              public function getData(): void {
+                  $data = $this->sync->getData();
+                  // ...
+              }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>These will hammer the DB and the 3rd party on every test run.</li>
+            <li>Do you have all your API keys available in CI?</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="groups">
+        <h2>These tests are polite</h2>
+        <pre data-id="groups"><code class="php font--16" data-trim data-noescape data-line-numbers>
+          #[Group('Sync')]
+          class SyncTest extends TestCase {
+              use UseDoctrine;
+              private Sync $sync;
+
+              #[Before]
+              public function makeSubject(): void {
+                  $this->sync = new Sync(new Client(), $this->conn);
+              }
+
+              #[Test]
+              public function cleaning(): void {
+                  self::assertSame('blah', $this->sync->cleanData('Blah'));
+              }
+
+              #[Test, Group('database')]
+              public function writeToDb(): void {
+                  $this->sync->saveData('...');
+                  self::assertEquals('...', $this->conn->executeQuery("...")->fetchOne());
+              }
+
+              #[Test, Group('connected')]
+              public function getData(): void {
+                  $data = $this->sync->getData();
+                  // ...
+              }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>By default, nothing changes</li>
+            <li>Can now tell PHPUnit to run only some groups</li>
+            <li>Can put as many Group attributes on a test/class as you want</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="groups">
+        <h2>Run just some groups</h2>
+        <pre data-id="groups-output"><code class="shell font--16" data-trim data-noescape data-line-numbers>
+          $ vendor/bin/phpunit tests/Groups/SyncTest.php
+          PHPUnit 13.0.5 by Sebastian Bergmann and contributors.
+          // ...
+          ...                                                           3 / 3 (100%)
+
+          Time: 00:00.001, Memory: 14.00 MB
+
+          OK (3 tests, 3 assertions)
+        </code></pre>
+        <pre class="fragment" data-id="groups-output"><code class="shell font--16" data-trim data-noescape data-line-numbers>
+          $ vendor/bin/phpunit tests/Groups/SyncTest.php --group connected
+          PHPUnit 13.0.5 by Sebastian Bergmann and contributors.
+          // ...
+          .                                                             1 / 1 (100%)
+
+          Time: 00:00.001, Memory: 14.00 MB
+
+          OK (1 tests, 1 assertions)
+        </code></pre>
+        <pre class="fragment" data-id="groups-output"><code class="shell font--16" data-trim data-noescape data-line-numbers>
+          $ vendor/bin/phpunit tests/Groups/SyncTest.php --exclude-group connected
+          PHPUnit 13.0.5 by Sebastian Bergmann and contributors.
+          // ...
+          ..                                                            2 / 2 (100%)
+
+          Time: 00:00.001, Memory: 14.00 MB
+
+          OK (2 tests, 2 assertions)
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Can exclude or include multiple groups, separate --group flag</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="groups">
+        <h2>Fully exclude in <code>phpunit.xml</code></h2>
+        <pre data-id="groups-config"><code class="xml font--16" data-trim data-line-numbers>
+          <?xml version="1.0" encoding="UTF-8"?>
+          <phpunit>
+             <!-- ... -->
+            <groups>
+              <exclude>
+                <group>connected</group>
+                <group>database</group>
+              </exclude>
+            </groups>
+          </phpunit>
+        </code></pre>
+        <p class="fragment">Override with <code>phpunit --group connected</code></p>
+        <p class="fragment"><code>#[Small]</code>, <code>#[Medium]</code>, <code>#[Large]</code> are automatically groups as well</p>
+        <aside class="notes">
+          <ul>
+            <li>Exclude slow groups by default</li>
+            <li>Can still run manually for development</li>
+            <li>Can still run in nightly CI if you're allowed</li>
+          </ul>
+        </aside>
+      </section>
+      <section>
+        <p class="oversize">Apply liberally</p>
+      </section>
+    </section>
+
     <div style="display:none">
       * Who you are
         * Use PHPUnit

@@ -24,7 +24,7 @@ trait UseDoctrine
     #[Before(10)]
     public function setupTables(): void
     {
-        $this->conn->executeQuery('CREATE TABLE users ...');
+        //$this->conn->executeQuery('CREATE TABLE users ...');
     }
 
 }

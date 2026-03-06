@@ -11,6 +11,14 @@
          failOnWarning="true"
 
     >
+
+    <groups>
+        <exclude>
+            <group>connected</group>
+            <group>database</group>
+        </exclude>
+    </groups>
+
     <testsuites>
         <testsuite name="default">
             <directory>tests</directory>
