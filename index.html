@@ -61,10 +61,10 @@
         <a href="https://bit.ly/fn-php"><img src="assets/thinking-functionally.png" width="175px;" alt="Cover of Thinking Functionally in PHP" /></a>
 
         <ul style="text-wrap: nowrap">
-          <li style="margin-top: 1em;">Available for hire!</li>
           <li style="margin-top: 1em;">PHP-FIG Core Committee</li>
           <li style="margin-top: 1em;">PHP Core Contributor</li>
           <li style="margin-top: 1em;">General purpose pedant</li>
+          <li style="margin-top: 1em;">Available for hire!</li>
           <li style="margin-top: 1em;"><a href="https://bit.ly/fn-php"><em>Thinking Functionally in PHP</em></a></li>
         </ul>
       </div>
@@ -81,19 +81,20 @@
         <p class="fragment">If this is not you, one of us is in the wrong room</p>
       </section>
       <section>
-        <h2>This talk is not</h2>
-        <ul>
-          <li class="fragment">An intro to PHPUnit</li>
-          <li class="fragment">An intro to the value of testing</li>
-        </ul>
-        <p class="fragment">We're focusing on PHPUnit 12/13</p>
-      </section>
-      <section>
         <h2>This talk is</h2>
         <ul>
           <li class="fragment">Focused on PHPUnit 12/13</li>
           <li class="fragment">Intended to teach you at least one new thing</li>
         </ul>
+        <aside class="notes">
+          <ul>
+            <li>Covering some PHPUnit features, some techniques</li>
+          </ul>
+        </aside>
+      </section>
+      <section>
+        <h2>Beware shenanigans</h2>
+        <img src="assets/shenanigain.jpg" alt="They have shenanned once, they will shenan-again.  So says Lura Thok">
       </section>
     </section>
     <section>
@@ -102,7 +103,7 @@
       </section>
       <section data-auto-animate data-auto-animate-id="phpunit-xml">
         <h2>Custom cache directory</h2>
-        <pre data-id="phpunit-xml"><code class="xml font--16" data-trim data-line-numbers>
+        <pre data-id="phpunit-xml"><code class="plaintext font--16" data-trim data-line-numbers>
           <?xml version="1.0" encoding="UTF-8"?>
             <phpunit bootstrap="vendor/autoload.php">
               <testsuites>
@@ -121,7 +122,7 @@
       </section>
       <section data-auto-animate data-auto-animate-id="phpunit-xml">
         <h2>Custom cache directory</h2>
-        <pre data-id="phpunit-xml"><code class="xml font--16" data-trim data-line-numbers>
+        <pre data-id="phpunit-xml"><code class="plaintext font--16" data-trim data-line-numbers>
           <?xml version="1.0" encoding="UTF-8"?>
             <phpunit bootstrap="vendor/autoload.php" cacheDirectory="build/phpunit.cache">
               <testsuites>
@@ -147,10 +148,9 @@
               public function __construct(public int $height, public int $width) {}
           }
         </code></pre>
-        <pre class="fragment"><code class="php font--18" data-trim data-noescape data-line-numbers>
+        <pre data-id="shape-tests" class="fragment"><code class="php font--18" data-trim data-noescape data-line-numbers>
           class RectangleTest extends TestCase {
-              #[Test]
-              public function areaOf2x2is4(): void {
+              public function testAreaOf2x2is4(): void {
                   $r = new Rectangle(2, 2);
                   self::assertSame(4.0, $r->area);
               }
@@ -163,8 +163,28 @@
         </aside>
       </section>
       <section data-auto-animate data-auto-animate-id="sizing">
+        <h2><code>#[Test]</code> attribute</h2>
+        <pre data-id="shape-tests"><code class="php font--18" data-trim data-noescape data-line-numbers>
+          class RectangleTest extends TestCase {
+              #[Test]
+              public function areaOf2x2is4(): void {
+                  $r = new Rectangle(2, 2);
+                  self::assertSame(4.0, $r->area);
+              }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Easier to comment out if needed, temporarily.</li>
+            <li>Makes naming things easier</li>
+            <li>Everything else is attributes anyway</li>
+            <li>Yes, could also use markTestSkipped(), but that generates noise in output</li>
+          </ul>
+        </aside>
+      </section>
+      <section data-auto-animate data-auto-animate-id="sizing">
         <h2>Test sizing</h2>
-        <pre><code class="php font--18" data-trim data-noescape data-line-numbers>
+        <pre data-id="shape-tests"><code class="php font--18" data-trim data-noescape data-line-numbers>
           #[Small]
           class RectangleTest extends TestCase {
               #[Test]
@@ -367,8 +387,7 @@
         </code></pre>
         <aside class="notes">
           <ul>
-            <li>Always use generator data providers</li>
-            <li>Always name your test cases</li>
+            <li></li>
           </ul>
         </aside>
       </section>
@@ -381,7 +400,7 @@
             yield '2x2=4' => [
                 'height' => 2,
                 'width' => 2,
-                'expectedArea' => 5,
+                'expectedArea' => 4,
             ];
             yield '3x2=6' => [
                 'height' => 3,
@@ -408,9 +427,6 @@
             <li>Didn't work in older PHPUnit versions</li>
             <li>More self-documenting</li>
             <li>Allows optional parameters</li>
-            <li>Always use generator data providers</li>
-            <li>Always name your test cases</li>
-            <li>Always use named args</li>
           </ul>
         </aside>
       </section>
@@ -709,7 +725,7 @@
             <li>Which is better?  Depends what you're doing</li>
             <li>Call a custom assertion from a callback closure, too!</li>
             <li>Not just for multi-tests, can use for any test</li>
-            <li>Built-in assertions are static, yours should be, too</li>
+            <li>Built-in assertions are static; yours should be, too</li>
           </ul>
         </aside>
       </section>
