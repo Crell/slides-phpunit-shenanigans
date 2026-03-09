@@ -84,6 +84,7 @@
         <h2>This talk is</h2>
         <ul>
           <li class="fragment">Focused on PHPUnit 12/13</li>
+          <li class="fragment">About core PHPUnit only, no extensions</li>
           <li class="fragment">Intended to teach you at least one new thing</li>
         </ul>
         <aside class="notes">
@@ -1512,6 +1513,127 @@
       </section>
       <section>
         <p class="oversize">Apply liberally</p>
+      </section>
+    </section>
+    <section>
+      <section>
+        <h2>Driver tests</h2>
+        <aside class="notes">
+          <ul>
+            <li>Many implementations that should look alike</li>
+            <li>If you have an in-memory implementation, this is a good practice</li>
+          </ul>
+        </aside>
+      </section>
+      <section>
+        <h2>New sample code</h2>
+        <pre data-id="drivers"><code class="php font--16" data-trim data-noescape data-line-numbers>
+          class Runner {
+            public function __construct(
+              readonly private Backend $backend,
+            ) {}
+
+            public function run($stuff): string {
+              return $this->backend->doStuff($stuff);
+            }
+          }
+
+          interface Backend {
+            public function doStuff(string $stuff): string;
+          }
+
+          class SqlBackend implements Backend {
+            public function doStuff(string $stuff): string { /* ... */ }
+          }
+
+          class RedisBackend implements Backend {
+            public function doStuff(string $stuff): string { /* ... */ }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Trivial example to fit on screen</li>
+          </ul>
+        </aside>
+      </section>
+      <section>
+        <h2>Test base class</h2>
+        <pre data-id="driver-tests"><code class="php font--16" data-trim data-noescape data-line-numbers>
+          abstract class RunnerTestCases extends TestCase {
+
+            protected Backend $backend;
+
+            abstract function setupBackend(): void;
+
+            public static function runProvider(): \Generator {
+              yield ['a'];
+              yield ['b'];
+            }
+
+            #[DataProvider('runProvider')]
+            public function testRun(string $val): void {
+              $runner = new Runner($this->backend);
+              self::assertSame($val, $runner->run($val));
+            }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Note the name doesn't end in "Test"</li>
+            <li>PHPUnit won't run this, but other classes can inherit it.</li>
+          </ul>
+        </aside>
+      </section>
+      <section>
+        <h2>Driver-specific tests</h2>
+        <pre data-id="driver-tests"><code class="php font--16" data-trim data-noescape data-line-numbers>
+          #[Group('sql'), Group('runner')]
+          class SqlRunnerTest extends RunnerTestCases {
+            #[Before]
+            public function setupBackend(): void {
+              $this->backend = new SqlBackend();
+            }
+          }
+
+          #[Group('redis'), Group('runner')]
+          class RedisRunnerTest extends RunnerTestCases {
+            #[Before]
+            public function setupBackend(): void {
+              $this->backend = new RedisBackend();
+            }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Attributes don't inherit, so need to specify them all here</li>
+            <li>Methods that inherit unmodified keep their attributes, eg, DataProvider</li>
+          </ul>
+        </aside>
+      </section>
+      <section>
+        <h2>Need a new driver?</h2>
+        <pre data-id="driver-tests"><code class="php font--16" data-trim data-noescape data-line-numbers>
+          #[Group('memory'), Group('runner')]
+          class MemoryRunnerTest extends RunnerTestCases {
+            #[Before]
+            public function setupBackend(): void {
+              $this->backend = new MemoryBackend();
+            }
+          }
+
+          class MemoryBackend implements Backend {
+            public function doStuff(string $stuff): string {
+              return $stuff;
+            }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>New driver, new test class, get all the tests already written</li>
+            <li>You know it works when all tests pass without changing them!</li>
+            <li>Can still override individual tests where necessary</li>
+          </ul>
+        </aside>
       </section>
     </section>
 
