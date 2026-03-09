@@ -430,6 +430,34 @@
           </ul>
         </aside>
       </section>
+      <section data-auto-animate data-auto-animate-id="multiplicative-tests">
+        <h2>Multiple providers</h2>
+        <pre data-id="provider-test-output"><code class="php font--16" data-trim data-noescape data-line-numbers>
+        #[Small]
+        class RectangleTest extends TestCase {
+          public static function squareProvider(): \Generator {
+            // ...
+          }
+
+         public static function rectProvider(): \Generator {
+            // ...
+          }
+
+          #[Test]
+          #[DataProvider('squareProvider')]
+          #[DataProvider('rectProvider')]
+          public function areaWithProvider(int $height, int $width, float $expectedArea): void {
+              $r = new Rectangle($height, $width);
+              self::assertSame($expectedArea, $r->area);
+          }
+        }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Dataset names are shared across providers and must be unique.</li>
+          </ul>
+        </aside>
+      </section>
       <section data-auto-animate data-auto-animate-id="complex-multiplicative-tests">
         <h2>Complex providers</h2>
         <pre data-id="request-tests"><code class="php font--16" data-trim data-noescape data-line-numbers="|5,8|10-11|6,12-22">
