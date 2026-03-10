@@ -1133,7 +1133,7 @@
         </code></pre>
       </section>
       <section data-auto-animate data-auto-animate-id="testdox">
-        <h2>With <code>--test-dox</code></h2>
+        <h2>With <code>--testdox</code></h2>
         <pre data-id="testdox"><code class="shell font--16" data-trim data-noescape data-line-numbers>
           $ vendor/bin/phpunit tests/Shapes/RectangleTest.php --testdox
           PHPUnit 13.0.5 by Sebastian Bergmann and contributors.
@@ -1634,6 +1634,148 @@
             <li>Can still override individual tests where necessary</li>
           </ul>
         </aside>
+      </section>
+    </section>
+    <section>
+      <section>
+        <h2>A real-world example: Crell/Serde</h2>
+        <p class="fragment bigtext">(A bit simplified)</p>
+      </section>
+      <section>
+        <h2>Core Serde class</h2>
+        <pre><code class="php font--16" data-trim data-noescape data-line-numbers>
+          class SerdeCommon extends Serde {
+            /** @var Formatter[] */
+            protected readonly array $formatters;
+
+            // ...
+
+            public function __construct(
+              // ...
+              array $formatters = [],
+            ) {
+              // ...
+              $this->formatters = array_filter($formatters typeIs(Formatter::class));
+              $this->deformatters = array_filter($formatters typeIs(Deformatter::class));
+            }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Super simplified from Serde</li>
+            <li>Pass in one or more formatters (json, yaml, toml, etc.)</li>
+            <li>Serde now can use any of those formatters as requested.</li>
+            <li>Several formatters are "array-based", i.e., build array and dump to serialized form at once</li>
+          </ul>
+        </aside>
+      </section>
+      <section>
+        <h2>Base tests class</h2>
+        <pre><code class="php font--14" data-trim data-noescape data-line-numbers="|17-20,25-28|14-17|2,3,17,18-20|5-12,22-23">
+          abstract class SerdeTestCases extends TestCase {
+            protected array $formatters;
+            protected string $format;
+
+            abstract protected function arrayify(mixed $serialized): array;
+
+            protected function validateSerialized(mixed $serialized, string $name): void {
+              $validateMethod = str_replace([' ', ':', ','], '_', $name) . '_validate';
+              if (method_exists($this, $validateMethod)) {
+                $this->$validateMethod($serialized);
+              }
+            }
+
+            #[Test, DataProvider('round_trip_examples')]
+            #[DataProvider('value_object_flatten_examples')]
+            // Lots more data providrs here...
+            public function round_trip(object $data): void {
+              $s = new SerdeCommon(formatters: $this->formatters);
+
+              $serialized = $s->serialize($data, $this->format);
+
+              // dataName() is marked internal, but seems stable enough.
+              $this->validateSerialized($serialized, (string)$this->dataName());
+
+              $result = $s->deserialize($serialized, from: $this->format, to: $data::class);
+
+              self::assertEquals($data, $result);
+            }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Test just serializes and deserializes</li>
+            <li>6 data providers, each with dozens of test objects</li>
+            <li>Has $formatters and $format list, for child classes</li>
+            <li>Tools for child classes to use</li>
+            <li>Cheating a bit with dataName(), marked internal</li>
+            <li>Allows for extended audit of the serialized form</li>
+          </ul>
+        </aside>
+      </section>
+      <section>
+        <h2>Array-based validation inserts</h2>
+        <pre><code class="php font--16" data-trim data-noescape data-line-numbers>
+          abstract class ArrayBasedFormatterTestCases extends SerdeTestCases {
+
+            protected function point_validate(mixed $serialized): void {
+              $toTest = $this->arrayify($serialized);
+
+              self::assertEquals(1, $toTest['x']);
+              self::assertEquals(2, $toTest['y']);
+              self::assertEquals(3, $toTest['z']);
+            }
+
+            // ...
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Array-based formatters can examine serialized form by looking at the array</li>
+            <li>These checks are the same for any formatter</li>
+            <li>Not every test needs it, but when we do care, it's here</li>
+          </ul>
+        </aside>
+      </section>
+      <section>
+        <h2>The real test class</h2>
+        <pre><code class="php font--16" data-trim data-noescape data-line-numbers>
+          #[Group('json')]
+          class JsonFormatterTest extends ArrayBasedFormatterTestCases {
+            #[Before]
+            public function setupFormatter(): void {
+              $this->formatters = [new JsonFormatter()];
+              $this->format = 'json';
+              // ...
+            }
+
+            protected function arrayify(mixed $serialized): array {
+              return json_decode($serialized, true, 512, JSON_THROW_ON_ERROR);
+            }
+          }
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>This is what PHPUnit sees as a test. This is where group attributes go</li>
+            <li>All of the parent methods inherit, and become tests</li>
+            <li>Can now test every formatter with a single test!</li>
+            <li>Test array, json, yaml, toml all at once</li>
+          </ul>
+        </aside>
+      </section>
+    </section>
+    <section>
+      <section>
+        <h2>Let's review</h2>
+        <ul>
+          <li class="fragment"><code>#[TestWith]</code>, <code>#[DataProvider]</code> make writing many tests easier</li>
+          <li class="fragment">Generators, Test callbacks, Custom assertions</li>
+          <li class="fragment">Name everything</li>
+          <li class="fragment">Use <code>#[Before]</code> etc. always, never <code>setUp()</code></li>
+          <li class="fragment">Traits are good, actually! (In the right situation)</li>
+          <li class="fragment"><code>#[TestDox]</code> are your friend</li>
+          <li class="fragment"><code>#[Group]</code>s are your friend</li>
+        </ul>
       </section>
     </section>
 
