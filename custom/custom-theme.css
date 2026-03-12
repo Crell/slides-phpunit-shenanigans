@@ -577,3 +577,9 @@ blockquote strong {
    */
   background-size: contain;
 }
+
+/* Code */
+
+.hljs-meta {
+  color: lightgoldenrodyellow;
+}
