@@ -71,6 +71,15 @@
     </section>
 
     <section>
+      <h2>Beware shenanigans</h2>
+      <img src="assets/shenanigain.jpg" alt="They have shenanned once, they will shenan-again.  So says Lura Thok">
+      <aside class="notes">
+        <ul>
+          <li>I really wanted to use this slide somewhere but couldn't find a place it fit, so here it is.</li>
+        </ul>
+      </aside>
+    </section>
+    <section>
       <section>
         <h2>Who are you?</h2>
         <ul>
@@ -92,10 +101,6 @@
             <li>Covering some PHPUnit features, some techniques</li>
           </ul>
         </aside>
-      </section>
-      <section>
-        <h2>Beware shenanigans</h2>
-        <img src="assets/shenanigain.jpg" alt="They have shenanned once, they will shenan-again.  So says Lura Thok">
       </section>
     </section>
     <section>
@@ -177,9 +182,9 @@
         <aside class="notes">
           <ul>
             <li>Easier to comment out if needed, temporarily.</li>
+            <li>Yes, could also use markTestSkipped(), but that generates noise in output</li>
             <li>Makes naming things easier</li>
             <li>Everything else is attributes anyway</li>
-            <li>Yes, could also use markTestSkipped(), but that generates noise in output</li>
           </ul>
         </aside>
       </section>
@@ -205,7 +210,7 @@
             <li>On the class, not method.</li>
             <li>Small implies fast, higher precision</li>
             <li>Useful for code coverage details</li>
-            <li>You get to define where the line is for your project</li>
+            <li>For me, small = one class, medium = multi class, large = whole request</li>
           </ul>
         </aside>
       </section>
@@ -917,6 +922,21 @@
           </ul>
         </aside>
       </section>
+      <section>
+        <h2>&lt;aside&gt;</h2>
+        <ul>
+          <li class="fragment">Traits are not evil, no matter what some fuddy duddy says</li>
+          <li class="fragment">Traits that have no external dependences are fine</li>
+          <li class="fragment">Using traits to bypass proper DI/API is evil</li>
+          <li class="fragment">Yes, this means Laravel's trait usage is evil. <span class="fragment">(So is Laravel)</span></li>
+        </ul>
+        <h2 class="fragment">&lt;/aside&gt;</h2>
+        <aside class="notes">
+          <ul>
+            <li>Though we'll see that since  you can't DI a test class, sometimes you need traits for connections etc. in tests.</li>
+          </ul>
+        </aside>
+      </section>
       <section data-auto-animate data-auto-animate-id="test-setup">
         <h2>Back to our code</h2>
         <pre data-id="test-setup"><code class="php font--14" data-trim data-noescape data-line-numbers>
@@ -966,7 +986,7 @@
               self::$conn = DriverManager::getConnection($connectionParams);
             }
           }
-          trait UseUserTable {
+          trait WithUserTable {
             use UseDoctrine;
 
            #[BeforeClass(10)]
@@ -981,7 +1001,7 @@
           }
           class IntegrationTest extends TestCase {
               use UseDoctrine;
-              use UserUserTable;
+              use WithUserTable;
 
               // Tests here
           }
@@ -1065,51 +1085,14 @@
           </ul>
         </aside>
       </section>
-      <section data-auto-animate data-auto-animate-id="test-setup">
-        <h2>Run Doctrine Migrations</h2>
-        <pre data-id="test-setup"><code class="php font--14" data-trim data-noescape data-line-numbers>
-          trait EnsureSchema {
-            protected static Connection $migrationConn;
-
-            #[BeforeClass(50)]
-            public static function createConnection(): void {
-              $connectionParams = [ ... ];
-              self::$migrationConn ??= DriverManager::getConnection($connectionParams);
-            }
-
-            #[BeforeClass(40)]
-            public static function executeMigrations(): void {
-              $newInput = new ArrayInput([]);
-              $output = new NullOutput();
-              $newInput->setInteractive(false);
-              $otherCommand = new MigrateCommand(self::getDependencyFactory());
-              $otherCommand->run($newInput, $output);
-            }
-
-            protected static function getDependencyFactory(): DependencyFactory {
-              // ...
-            }
-
-            protected static function getConfigLoader(Configuration $config): ConfigurationLoader {
-              // ..
-            }
-
-            protected static function getConnectionLoader(): ConnectionLoader {
-              // ...
-            }
-          }
-        </code></pre>
-        <p class="fragment">Too big and ugly for slides. Blog post to come.</p>
-        <aside class="notes">
-          <ul>
-            <li>Borrowed from other OSS code</li>
-            <li>Doctrine Migrations is crap for automation</li>
-            <li>Will blog at some point</li>
-          </ul>
-        </aside>
-      </section>
       <section>
         <p class="oversize">I'm sure you can find other uses...</p>
+        <aside class="notes">
+          <ul>
+            <li>Also use for running doctrine migrations before each class</li>
+            <li>Too big for a slide...</li>
+          </ul>
+        </aside>
       </section>
     </section>
     <section>
@@ -1740,7 +1723,7 @@
       <section>
         <h2>The real test class</h2>
         <pre><code class="php font--16" data-trim data-noescape data-line-numbers>
-          #[Group('json')]
+          #[Group('json'), Medium]
           class JsonFormatterTest extends ArrayBasedFormatterTestCases {
             #[Before]
             public function setupFormatter(): void {
@@ -1768,14 +1751,19 @@
       <section>
         <h2>Let's review</h2>
         <ul>
-          <li class="fragment"><code>#[TestWith]</code>, <code>#[DataProvider]</code> make writing many tests easier</li>
-          <li class="fragment">Generators, Test callbacks, Custom assertions</li>
-          <li class="fragment">Name everything</li>
+          <li class="fragment">
+            <code>#[TestWith]</code>, <code>#[DataProvider]</code> make writing many tests easier
+            <ul>
+              <li class="fragment">Generators, Test callbacks, Custom assertions</li>
+              <li class="fragment">Name everything</li>
+            </ul>
+          </li>
           <li class="fragment">Use <code>#[Before]</code> etc. always, never <code>setUp()</code></li>
           <li class="fragment">Traits are good, actually! (In the right situation)</li>
           <li class="fragment"><code>#[TestDox]</code> are your friend</li>
           <li class="fragment"><code>#[Group]</code>s are your friend</li>
         </ul>
+        <p class="fragment oversize">PHPUnit is your friend!</p>
       </section>
     </section>
 
@@ -1815,9 +1803,6 @@
         * Mocks
           * Avoid them in favor of anon classes
           * If must use them, mocks vs stubs in PHPUnit (cf SB's article)
-        *
-
-
     </div>
 
     <section id="final">
@@ -1826,7 +1811,6 @@
           <h2>Larry Garfield</h2>
           <h2><a href="https://phpc.social/@Crell">@Crell@phpc.social</a></h2>
         </div>
-        <!--
         <div style="grid-area: left">
           <h2>All about PHP 8!</h2>
           <p><a href="https://bit.ly/php80">https://bit.ly/php80</a></p>
@@ -1837,7 +1821,6 @@
           <p><a href="https://bit.ly/fn-php">https://bit.ly/fn-php</a></p>
           <p><a href="https://bit.ly/fn-php"><img src="assets/thinking-functionally.png" width="175px;" alt="Cover of Thinking Functionally in PHP" /></a></p>
         </div>
-        -->
       </div>
       <h3><a href="https://www.garfieldtech.com/">https://www.garfieldtech.com/</a></h3>
     </section>
