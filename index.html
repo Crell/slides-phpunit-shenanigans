@@ -86,45 +86,121 @@
     </section>
     <section>
       <section>
-        <h2>Odds and ends</h2>
+        <h2>Setting up</h2>
       </section>
       <section data-auto-animate data-auto-animate-id="phpunit-xml">
-        <h2>Custom cache directory</h2>
+        <h2>Your basic config</h2>
         <pre data-id="phpunit-xml"><code class="plaintext font--16" data-trim data-line-numbers>
-          <?xml version="1.0" encoding="UTF-8"?>
-            <phpunit bootstrap="vendor/autoload.php">
-              <testsuites>
-                  <testsuite name="default">
-                      <directory>tests</directory>
-                  </testsuite>
-              </testsuites>
+            &lt;phpunit
+              bootstrap="vendor/autoload.php"
+            >
+              &lt;testsuites>
+                  &lt;testsuite name="default">
+                      &lt;directory>tests&lt;/directory>
+                  &lt;/testsuite>
+              &lt;/testsuites>
 
-              <source ignoreIndirectDeprecations="true">
-                  <include>
-                      <directory>src</directory>
-                  </include>
-              </source>
-          </phpunit>
+              &lt;source>
+                  &lt;include>
+                      &lt;directory>src&lt;/directory>
+                  &lt;/include>
+              &lt;/source>
+          &lt;/phpunit>
         </code></pre>
       </section>
       <section data-auto-animate data-auto-animate-id="phpunit-xml">
         <h2>Custom cache directory</h2>
         <pre data-id="phpunit-xml"><code class="plaintext font--16" data-trim data-line-numbers>
-          <?xml version="1.0" encoding="UTF-8"?>
-            <phpunit bootstrap="vendor/autoload.php" cacheDirectory="build/phpunit.cache">
-              <testsuites>
-                  <testsuite name="default">
-                      <directory>tests</directory>
-                  </testsuite>
-              </testsuites>
+            &lt;phpunit
+              bootstrap="vendor/autoload.php"
+              cacheDirectory="build/phpunit.cache"
+            >
+              &lt;testsuites>
+                  &lt;testsuite name="default">
+                      &lt;directory>tests&lt;/directory>
+                  &lt;/testsuite>
+              &lt;/testsuites>
 
-              <source ignoreIndirectDeprecations="true">
-                  <include>
-                      <directory>src</directory>
-                  </include>
-              </source>
-          </phpunit>
+              &lt;source>
+                  &lt;include>
+                      &lt;directory>src&lt;/directory>
+                  &lt;/include>
+              &lt;/source>
+          &lt;/phpunit>
         </code></pre>
+      </section>
+      <section data-auto-animate data-auto-animate-id="phpunit-xml">
+        <h2>Pedantic mode</h2>
+        <pre data-id="phpunit-xml"><code class="plaintext font--16" data-trim data-line-numbers>
+            &lt;phpunit
+              bootstrap="vendor/autoload.php"
+              cacheDirectory="build/phpunit.cache"
+              failOnNotice="true"
+              failOnWarning="true"
+            >
+              &lt;testsuites>
+                  &lt;testsuite name="default">
+                      &lt;directory>tests&lt;/directory>
+                  &lt;/testsuite>
+              &lt;/testsuites>
+
+              &lt;source>
+                  &lt;include>
+                      &lt;directory>src&lt;/directory>
+                  &lt;/include>
+              &lt;/source>
+          &lt;/phpunit>
+        </code></pre>
+      </section>
+      <section data-auto-animate data-auto-animate-id="phpunit-xml">
+        <h2>Ignore 3rd party deprecations</h2>
+        <pre data-id="phpunit-xml"><code class="plaintext font--16" data-trim data-line-numbers>
+            &lt;phpunit
+              bootstrap="vendor/autoload.php"
+              cacheDirectory="build/phpunit.cache"
+              failOnNotice="true"
+              failOnWarning="true"
+            >
+              &lt;testsuites>
+                  &lt;testsuite name="default">
+                      &lt;directory>tests&lt;/directory>
+                  &lt;/testsuite>
+              &lt;/testsuites>
+
+              &lt;source ignoreIndirectDeprecations="true">
+                  &lt;include>
+                      &lt;directory>src&lt;/directory>
+                  &lt;/include>
+              &lt;/source>
+          &lt;/phpunit>
+        </code></pre>
+      </section>
+      <section data-auto-animate data-auto-animate-id="phpunit-xml">
+        <h2>Complain loudly on problems</h2>
+        <pre data-id="phpunit-xml"><code class="plaintext font--16" data-trim data-line-numbers>
+            &lt;phpunit
+              bootstrap="vendor/autoload.php"
+              cacheDirectory="build/phpunit.cache"
+              failOnNotice="true"
+              failOnWarning="true"
+            >
+              &lt;!-- ... -->
+
+              &lt;php>
+                  &lt;ini name="display_errors" value="on" />
+                  &lt;ini name="display_startup_errors" value="on" />
+                  &lt;ini name="error_reporting" value="-1" />
+                  &lt;ini name="zend.assertions" value="1" />
+                  &lt;ini name="assert.exceptions" value="1" />
+                  &lt;ini name="xdebug.show_show_exception_trace" value="on" />
+              &lt;/php>
+          &lt;/phpunit>
+        </code></pre>
+      </section>
+    </section>
+    <section>
+      <section>
+        <h2>The basics</h2>
       </section>
       <section data-auto-animate data-auto-animate-id="sizing">
         <h2>Example code</h2>
@@ -334,7 +410,7 @@
       </section>
       <section data-auto-animate data-auto-animate-id="multiplicative-tests">
         <h2>Data generators error output</h2>
-        <pre data-id="provider-test-output"><code class="bash font--16" data-trim data-noescape data-line-numbers="|9">
+        <pre data-id="provider-test-output"><code class=" font--16" data-trim data-noescape data-line-numbers="|9">
           $ vendor/bin/phpunit --filter areaWithProvider
 
           ..F                                                              6 / 6 (100%)
@@ -357,7 +433,7 @@
       </section>
       <section data-auto-animate data-auto-animate-id="multiplicative-tests">
         <h2>Data generators error output</h2>
-        <pre data-id="provider-test-output"><code class="bash font--16" data-trim data-noescape data-line-numbers>
+        <pre data-id="provider-test-output"><code class="plaintext font--16" data-trim data-noescape data-line-numbers>
           $ vendor/bin/phpunit --filter areaWithProvider@2x2=4
 
           F                                                              6 / 6 (100%)
@@ -1454,7 +1530,6 @@
       <section data-auto-animate data-auto-animate-id="groups">
         <h2>Fully exclude in <code>phpunit.xml</code></h2>
         <pre data-id="groups-config"><code class="plaintext font--16" data-trim data-line-numbers>
-          <?xml version="1.0" encoding="UTF-8"?>
           <phpunit>
              <!-- ... -->
             <groups>
