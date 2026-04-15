@@ -197,6 +197,29 @@
           &lt;/phpunit>
         </code></pre>
       </section>
+      <section data-auto-animate data-auto-animate-id="phpunit-xml">
+        <h2>Configure your app</h2>
+        <pre data-id="phpunit-xml"><code class="plaintext font--16" data-trim data-line-numbers>
+            &lt;phpunit
+              bootstrap="vendor/autoload.php"
+              cacheDirectory="build/phpunit.cache"
+              failOnNotice="true"
+              failOnWarning="true"
+            >
+              &lt;!-- ... -->
+
+              &lt;php>
+                  &lt;!-- ... -->
+                  &lt;env name="APP_MODE" value="dev" />
+              &lt;/php>
+          &lt;/phpunit>
+        </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Can also specify test-DB credentials, etc.</li>
+          </ul>
+        </aside>
+      </section>
     </section>
     <section>
       <section>
