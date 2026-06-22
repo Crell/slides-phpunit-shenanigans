@@ -90,7 +90,7 @@
       </section>
       <section data-auto-animate data-auto-animate-id="phpunit-xml">
         <h2>Your basic config</h2>
-        <pre data-id="phpunit-xml"><code class="plaintext font--16" data-trim data-line-numbers>
+        <pre data-id="phpunit-xml"><code class="xml font--16" data-trim data-line-numbers>
             &lt;phpunit
               bootstrap="vendor/autoload.php"
             >
@@ -110,7 +110,7 @@
       </section>
       <section data-auto-animate data-auto-animate-id="phpunit-xml">
         <h2>Custom cache directory</h2>
-        <pre data-id="phpunit-xml"><code class="plaintext font--16" data-trim data-line-numbers>
+        <pre data-id="phpunit-xml"><code class="xml font--16" data-trim data-line-numbers>
             &lt;phpunit
               bootstrap="vendor/autoload.php"
               cacheDirectory="build/phpunit.cache"
@@ -128,10 +128,15 @@
               &lt;/source>
           &lt;/phpunit>
         </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Put all your tooling metadata and caches in a common directory to get them out of the way</li>
+          </ul>
+        </aside>
       </section>
       <section data-auto-animate data-auto-animate-id="phpunit-xml">
         <h2>Pedantic mode</h2>
-        <pre data-id="phpunit-xml"><code class="plaintext font--16" data-trim data-line-numbers>
+        <pre data-id="phpunit-xml"><code class="xml font--16" data-trim data-line-numbers>
             &lt;phpunit
               bootstrap="vendor/autoload.php"
               cacheDirectory="build/phpunit.cache"
@@ -151,10 +156,16 @@
               &lt;/source>
           &lt;/phpunit>
         </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Always set your build tools to extra-picky mode</li>
+            <li>Catch issues before production</li>
+          </ul>
+        </aside>
       </section>
       <section data-auto-animate data-auto-animate-id="phpunit-xml">
         <h2>Ignore 3rd party deprecations</h2>
-        <pre data-id="phpunit-xml"><code class="plaintext font--16" data-trim data-line-numbers>
+        <pre data-id="phpunit-xml"><code class="xml font--16" data-trim data-line-numbers>
             &lt;phpunit
               bootstrap="vendor/autoload.php"
               cacheDirectory="build/phpunit.cache"
@@ -174,10 +185,15 @@
               &lt;/source>
           &lt;/phpunit>
         </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>But don't be pedantic about someone else's code if you don't have to</li>
+          </ul>
+        </aside>
       </section>
       <section data-auto-animate data-auto-animate-id="phpunit-xml">
         <h2>Complain loudly on problems</h2>
-        <pre data-id="phpunit-xml"><code class="plaintext font--16" data-trim data-line-numbers>
+        <pre data-id="phpunit-xml"><code class="xml font--16" data-trim data-line-numbers>
             &lt;phpunit
               bootstrap="vendor/autoload.php"
               cacheDirectory="build/phpunit.cache"
@@ -196,10 +212,15 @@
               &lt;/php>
           &lt;/phpunit>
         </code></pre>
+        <aside class="notes">
+          <ul>
+            <li>Force ini settings to pedantic and verbose. You're in debug mode.</li>
+          </ul>
+        </aside>
       </section>
       <section data-auto-animate data-auto-animate-id="phpunit-xml">
         <h2>Configure your app</h2>
-        <pre data-id="phpunit-xml"><code class="plaintext font--16" data-trim data-line-numbers>
+        <pre data-id="phpunit-xml"><code class="xml font--16" data-trim data-line-numbers>
             &lt;phpunit
               bootstrap="vendor/autoload.php"
               cacheDirectory="build/phpunit.cache"
@@ -217,6 +238,7 @@
         <aside class="notes">
           <ul>
             <li>Can also specify test-DB credentials, etc.</li>
+            <li>Application-specific, but that's OK</li>
           </ul>
         </aside>
       </section>
@@ -989,6 +1011,7 @@
         <aside class="notes">
           <ul>
             <li>After variants of both, too</li>
+            <li>Self-cleaning tests!  Leaves only the fresh scent of pine.</li>
           </ul>
         </aside>
       </section>
@@ -1092,6 +1115,7 @@
             <li>Could organize as one trait, 2, 3, up to you</li>
             <li>Very useful for common fixtures</li>
             <li>Also great for custom assertions!</li>
+            <li>If you have a custom value object, provide an assertion trait for it.</li>
           </ul>
         </aside>
       </section>
@@ -1439,6 +1463,7 @@
       <section data-auto-animate data-auto-animate-id="groups">
         <h2>These tests are rude</h2>
         <pre data-id="groups"><code class="php font--16" data-trim data-noescape data-line-numbers>
+          #
           class SyncTest extends TestCase {
               use UseDoctrine;
               private Sync $sync;
@@ -1552,7 +1577,7 @@
       </section>
       <section data-auto-animate data-auto-animate-id="groups">
         <h2>Fully exclude in <code>phpunit.xml</code></h2>
-        <pre data-id="groups-config"><code class="plaintext font--16" data-trim data-line-numbers>
+        <pre data-id="groups-config"><code class="xml font--16" data-trim data-line-numbers>
           <phpunit>
              <!-- ... -->
             <groups>
