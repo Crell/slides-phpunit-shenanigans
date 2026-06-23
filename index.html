@@ -142,6 +142,7 @@
               cacheDirectory="build/phpunit.cache"
               failOnNotice="true"
               failOnWarning="true"
+              failOnDeprecations="true"
             >
               &lt;testsuites>
                   &lt;testsuite name="default">
@@ -171,6 +172,7 @@
               cacheDirectory="build/phpunit.cache"
               failOnNotice="true"
               failOnWarning="true"
+              failOnDeprecations="true"
             >
               &lt;testsuites>
                   &lt;testsuite name="default">
@@ -178,7 +180,7 @@
                   &lt;/testsuite>
               &lt;/testsuites>
 
-              &lt;source ignoreIndirectDeprecations="true">
+              &lt;source restrictDeprecations="true" restrictNotices="true">
                   &lt;include>
                       &lt;directory>src&lt;/directory>
                   &lt;/include>
@@ -199,6 +201,7 @@
               cacheDirectory="build/phpunit.cache"
               failOnNotice="true"
               failOnWarning="true"
+              failOnDeprecations="true"
             >
               &lt;!-- ... -->
 
@@ -206,7 +209,6 @@
                   &lt;ini name="display_errors" value="on" />
                   &lt;ini name="display_startup_errors" value="on" />
                   &lt;ini name="error_reporting" value="-1" />
-                  &lt;ini name="zend.assertions" value="1" />
                   &lt;ini name="assert.exceptions" value="1" />
                   &lt;ini name="xdebug.show_show_exception_trace" value="on" />
               &lt;/php>
@@ -226,6 +228,7 @@
               cacheDirectory="build/phpunit.cache"
               failOnNotice="true"
               failOnWarning="true"
+              failOnDeprecations="true"
             >
               &lt;!-- ... -->
 
